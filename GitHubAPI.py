@@ -1,5 +1,6 @@
 import requests
 import base64
+import os
 
 def get_file_from_github(repo, file_path):
     # GitHub API URL for the repo and file
@@ -26,7 +27,8 @@ def get_file_from_github(repo, file_path):
 
 # Example usage
 repo_name = "LordBobbert/GymManager1"
-file_path = "GitHubAPI.py"  # Updated with the correct file name and path
+file_path = "GitHubAPI.py"  # Updated with the correct file name and 
+access_token = os.getenv('GITHUB_TOKEN')
 
 file_content = get_file_from_github(repo_name, file_path)
 print(file_content)
