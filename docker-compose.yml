@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL}  # From the .env file
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    stdin_open: true
+    tty: true
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}  # From the .env file
+      - DJANGO_DEBUG=${DJANGO_DEBUG}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DJANGO_DB_NAME=${DJANGO_DB_NAME}
+      - DJANGO_DB_USER=${DJANGO_DB_USER}
+      - DJANGO_DB_PASSWORD=${DJANGO_DB_PASSWORD}
+      - DJANGO_DB_HOST=${DJANGO_DB_HOST}
+      - DJANGO_DB_PORT=${DJANGO_DB_PORT}
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"  # HTTP
+      - "443:443"    # HTTPS
+    command: >
+      watchmedo auto-restart --directory=./ --pattern=*.py -- 
+      python manage.py runsslserver 0.0.0.0:8000 
+      --certificate /app/localhost.crt 
+      --key /app/localhost.key
+    stdin_open: true
+    tty: true

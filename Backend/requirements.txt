@@ -1,0 +1,12 @@
+watchdog
+psycopg2-binary
+psycopg2
+Django
+djangorestframework
+gunicorn
+django-cors-headers
+Pillow
+django-environ
+tzdata
+djangorestframework-simplejwt
+django-sslserver
