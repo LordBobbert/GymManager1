@@ -14,9 +14,9 @@ export const fetchClients = async () => {
 // Fetch all trainers
 export const fetchTrainers = async () => {
     const response = await axios.get(
-        `${API_URL}/api/trainers/`,{
+        `${API_URL}/api/trainers/`, {
         withCredentials: true,  // Include cookies (access_token) with the request
-        });
+    });
     return response.data;
 };
 
@@ -62,4 +62,8 @@ export const updateTrainer = async (trainerId: number, trainerData: any) => {
     return response.data;
 };
 
-// Delete a tra
+// Delete a trainer (soft delete)
+export const deleteTrainer = async (trainerId: number) => {
+    const response = await axios.delete(`${API_URL}/api/trainers/${trainerId}/`);
+    return response.data;
+};

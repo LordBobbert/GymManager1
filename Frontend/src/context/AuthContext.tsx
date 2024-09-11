@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { login } from '../api/authApi';  // Adjust the path if necessary
@@ -12,19 +12,19 @@ interface AuthContextProps {
   logoutUser: () => void;
 }
 
-// Create the AuthContext
 export const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null); // Holds user information after login
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Tracks authentication state
+  const [user, setUser] = useState<any | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);  // Error handling for login
   const navigate = useNavigate();
 
-  // Function to fetch user details (including the role) from the backend after login
+  // Function to fetch user details after login
   const fetchUserDetails = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/auth/user/`, {
-        withCredentials: true,  // Ensure cookies (access_token, refresh_token) are sent
+        withCredentials: true,
       });
       return response.data;
     } catch (error) {
@@ -33,52 +33,64 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Function to log the user in
+  // Check if user is already authenticated on app load
+  useEffect(() => {
+    const checkAuth = async () => {
+      const userDetails = await fetchUserDetails();
+      if (userDetails) {
+        setUser(userDetails);
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Function to log in
   const loginUser = async (email: string, password: string) => {
     try {
-      const response = await login(email, password); // Call the login API
-
-      // At this point, the backend has stored the tokens in HTTP-only cookies.
-      // Now fetch the user details using a separate API call.
+      await login(email, password);
       const userDetails = await fetchUserDetails();
-
       if (userDetails) {
-        setIsAuthenticated(true);  // Set authentication to true
-        setUser(userDetails);  // Store user details in state
-
-        // Navigate based on user role
-        if (userDetails.role === 'admin') {
-          navigate('/admin/dashboard');
-        } else if (userDetails.role === 'trainer') {
-          navigate('/trainer/dashboard');
-        } else if (userDetails.role === 'client') {
-          navigate('/client/dashboard');
-        } else {
-          console.warn('Unknown role:', userDetails.role);
-          navigate('/dashboard');  // Fallback for unknown roles
-        }
+        setIsAuthenticated(true);
+        setUser(userDetails);
+        setErrorMessage(null);
+        navigateBasedOnRole(userDetails);
       } else {
         throw new Error('Failed to fetch user details after login');
       }
-
     } catch (error) {
       console.error('Login error:', error);
+      setErrorMessage('Invalid login credentials. Please try again.');
     }
   };
 
-  // Function to log the user out
+  // Navigate based on user role
+  const navigateBasedOnRole = (userDetails: any) => {
+    if (userDetails.role === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (userDetails.role === 'trainer') {
+      navigate('/trainer/dashboard');
+    } else if (userDetails.role === 'client') {
+      navigate('/client/dashboard');
+    } else {
+      console.warn('Unknown role:', userDetails.role);
+      navigate('/dashboard');
+    }
+  };
+
+  // Function to log out
   const logoutUser = async () => {
     try {
       await axios.post(`${API_URL}/auth/logout/`, {}, { withCredentials: true });
-
-      // Reset user and authentication state
       setUser(null);
       setIsAuthenticated(false);
-
-      // Redirect to the login page
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
+      alert('There was an issue logging you out. Please try again.');
     }
   };
 

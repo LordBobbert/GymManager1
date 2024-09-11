@@ -1,28 +1,26 @@
 // src/components/Layout/DashboardLayout.tsx
-import React, { ReactNode } from 'react';
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
-import { useAuth } from '../../context/AuthContext';
+import { colors } from '../../styles/theme'; // Import the new theme
 
-interface DashboardLayoutProps {
-    children: ReactNode;
-}
+const DashboardLayout: React.FC = () => {
+  return (
+    <Box display="flex" height="100vh">
+      {/* Sidebar */}
+      <Sidebar />
 
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-    const { user } = useAuth();
-
-    return (
-        <Box display="flex" height="100vh">
-            <Sidebar role={user?.role || ''} />
-            <Box flexGrow={1} display="flex" flexDirection="column">
-                <TopBar />
-                <Box flexGrow={1} p={3}>
-                    {children}
-                </Box>
-            </Box>
+      {/* Main content area */}
+      <Box flexGrow={1} display="flex" flexDirection="column" sx={{ backgroundColor: colors.lightGray }}>
+        <TopBar />
+        <Box flexGrow={1} p={3}>
+          <Outlet />
         </Box>
-    );
+      </Box>
+    </Box>
+  );
 };
 
 export default DashboardLayout;
